@@ -1,5 +1,8 @@
-﻿### Ticket Queue Legend (ID)
+### Ticket Queue Legend (ID)
 ## "T10": "Monitoring"
+
+### Ticket Status Legend
+## "Closed": "Completed"
 
 ### Group
 ## "4": "Unassigned"
@@ -45,7 +48,7 @@ $global:headersYeti = @{
   "Authorization" = "Basic YXBpLXByZW1pdW06ZmFzZGZkc2F0QUFBYXdlcmZkMzQxMmUhISE="
   "Content-Type" = "application/json"
   "x-token" = $token
-  "x-row-limit" = "5000"
+  "x-row-limit" = "1000000"
 }
 
 # --- Icinga API ---
@@ -211,6 +214,7 @@ function RunHosts {
 `n    `"ticket_title`": `"Icinga Monitoring - Host is down - $hostdisplayname`",
 `n    `"parent_id`": $yetiforce_client_id,
 `n    `"assigned_user_id`": 4,
+`n    `"contact_id`": 22037,
 `n    `"ticketcategories`": `"T10`",
 `n    `"ticketstatus`": `"Open`",
 `n    `"issue_type`": `"T83`",
@@ -287,6 +291,7 @@ function RunHosts {
 `n    `"ticket_title`": `"Icinga Monitoring - Host is down - $hostdisplayname`",
 `n    `"parent_id`": $yetiforce_client_id,
 `n    `"assigned_user_id`": 4,
+`n    `"contact_id`": 22037,
 `n    `"ticketcategories`": `"T10`",
 `n    `"ticketstatus`": `"Open`",
 `n    `"issue_type`": `"T83`",
@@ -361,7 +366,7 @@ function RunHosts {
         $response11 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebservicePremium/HelpDesk/Record/$commenthost" -Method 'GET' -Headers $headersYeti
         $global:ticketstatus = $response11 | Select-Object -ExpandProperty result | Select-Object -ExpandProperty data | Select-Object -ExpandProperty ticketstatus
 
-        if ($global:ticketstatus -eq "Completed") {
+        if ($global:ticketstatus -eq "Closed") {
 
           # --- Book a ticket in YetiForce ---
 
@@ -369,6 +374,7 @@ function RunHosts {
 `n    `"ticket_title`": `"Icinga Monitoring - Host is down - $hostdisplayname`",
 `n    `"parent_id`": $yetiforce_client_id,
 `n    `"assigned_user_id`": 4,
+`n    `"contact_id`": 22037,
 `n    `"ticketcategories`": `"T10`",
 `n    `"ticketstatus`": `"Open`",
 `n    `"issue_type`": `"T83`",
@@ -572,6 +578,7 @@ function RunServices {
 `n    `"ticket_title`": `"Icinga Monitoring - Service problem - $servicedisplayname on $servicehostname`",
 `n    `"parent_id`": $yetiforce_client_id,
 `n    `"assigned_user_id`": 4,
+`n    `"contact_id`": 22037,
 `n    `"ticketcategories`": `"T10`",
 `n    `"ticketstatus`": `"Open`",
 `n    `"issue_type`": `"T86`",
@@ -653,6 +660,7 @@ function RunServices {
 `n    `"ticket_title`": `"Icinga Monitoring - Service problem - $servicedisplayname on $servicehostname`",
 `n    `"parent_id`": $yetiforce_client_id,
 `n    `"assigned_user_id`": 4,
+`n    `"contact_id`": 22037,
 `n    `"ticketcategories`": `"T10`",
 `n    `"ticketstatus`": `"Open`",
 `n    `"issue_type`": `"T86`",
@@ -727,7 +735,7 @@ function RunServices {
         $response28 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebservicePremium/HelpDesk/Record/$commentservice" -Method 'GET' -Headers $headersYeti
         $global:ticketstatus2 = $response28 | Select-Object -ExpandProperty result | Select-Object -ExpandProperty data | Select-Object -ExpandProperty ticketstatus
 
-        if ($global:ticketstatus2 -eq "Completed") {
+        if ($global:ticketstatus2 -eq "Closed") {
 
           # --- Book a ticket in YetiForce ---
 
@@ -739,6 +747,7 @@ function RunServices {
 `n    `"ticket_title`": `"Icinga Monitoring - Service problem - $servicedisplayname on $servicehostname`",
 `n    `"parent_id`": $yetiforce_client_id,
 `n    `"assigned_user_id`": 4,
+`n    `"contact_id`": 22037,
 `n    `"ticketcategories`": `"T10`",
 `n    `"ticketstatus`": `"Open`",
 `n    `"issue_type`": `"T86`",
@@ -856,7 +865,7 @@ function RunServices {
 
 function CheckIfProblemResolvedItself {
 
-  # --- Retrieve the list of the Icinga tickets booked in but not accepted/assigned with any Status excluding Completed ---
+  # --- Retrieve the list of the Icinga tickets booked in but not accepted/assigned with any Status excluding Closed ---
 
   # --- Yeti Ticket Header ---
 
@@ -865,8 +874,8 @@ function CheckIfProblemResolvedItself {
     "Authorization" = "Basic YXBpLXByZW1pdW06ZmFzZGZkc2F0QUFBYXdlcmZkMzQxMmUhISE="
     "Content-Type" = "application/json"
     "x-token" = $token
-    "x-row-limit" = "5000"
-    "x-condition" = '[{ "fieldName": "assigned_user_id", "value": "4", "operator": "e", "group": true },{ "fieldName": "ticketstatus", "value": "Completed", "operator": "n", "group": true }]'
+    "x-row-limit" = "1000000"
+    "x-condition" = '[{ "fieldName": "assigned_user_id", "value": "4", "operator": "e", "group": true },{ "fieldName": "ticketstatus", "value": "Closed", "operator": "n", "group": true }]'
   }
 
   $response0 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebservicePremium/HelpDesk/RecordsList" -Method 'GET' -Headers $headersYeti2
@@ -877,7 +886,7 @@ function CheckIfProblemResolvedItself {
 
   # --- Check if the Host or Service recovered in the meantime ---
 
-  # --- Close tickets with any status excluding Completed that recovered and are not accepted/assigned yet ---
+  # --- Close tickets with any status excluding Closed that recovered and are not accepted/assigned yet ---
 
   foreach ($global:r in $global:response) {
 
@@ -923,7 +932,7 @@ function CheckIfProblemResolvedItself {
 
         $response10 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebservicePremium/ModComments/Record" -Method 'POST' -Headers $headersYeti2 -Body $body10
 
-        # --- Change YetiForce ticket status to Completed, assign it to Administrator and add resolution too ---
+        # --- Change YetiForce ticket status to Closed, assign it to Administrator and add resolution too ---
 
         $statusbody4 = "{
 `n    `"solution`": `"The Host state recovered before the ticket to be assigned`",
@@ -931,7 +940,7 @@ function CheckIfProblemResolvedItself {
 `n}"
 
         $statusbody8 = "{
-`n    `"ticketstatus`": `"Completed`"
+`n    `"ticketstatus`": `"Closed`"
 `n}"
 
         $updatestatus12 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebservicePremium/HelpDesk/Record/$global:r" -Method 'PUT' -Headers $headersYeti2 -Body $statusbody4
@@ -966,7 +975,7 @@ function CheckIfProblemResolvedItself {
 
         $response11 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebservicePremium/ModComments/Record" -Method 'POST' -Headers $headersYeti2 -Body $body11
 
-        # --- Change YetiForce ticket status to Completed, assign it to Administrator and add resolution too ---
+        # --- Change YetiForce ticket status to Closed, assign it to Administrator and add resolution too ---
 
         $statusbody3 = "{
 `n    `"solution`": `"The Service state recovered before the ticket to be assigned`",
@@ -974,7 +983,7 @@ function CheckIfProblemResolvedItself {
 `n}"
 
         $statusbody5 = "{
-`n    `"ticketstatus`": `"Completed`"
+`n    `"ticketstatus`": `"Closed`"
 `n}"
 
         $updatestatus11 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebservicePremium/HelpDesk/Record/$global:r" -Method 'PUT' -Headers $headersYeti2 -Body $statusbody3
@@ -987,7 +996,7 @@ function CheckIfProblemResolvedItself {
 
 function UpdateTicketIfProblemResolvedItself {
 
-  # --- Retrieve the list of the Icinga tickets booked, accepted and not completed or in quality control ---
+  # --- Retrieve the list of the Icinga tickets booked, accepted and not Closed or in quality control ---
 
   # --- Yeti Ticket Header ---
 
@@ -996,8 +1005,8 @@ function UpdateTicketIfProblemResolvedItself {
     "Authorization" = "Basic YXBpLXByZW1pdW06ZmFzZGZkc2F0QUFBYXdlcmZkMzQxMmUhISE="
     "Content-Type" = "application/json"
     "x-token" = $token
-    "x-row-limit" = "5000"
-    "x-condition" = '[{ "fieldName": "assigned_user_id", "value": "4", "operator": "n", "group": true },{ "fieldName": "ticketstatus", "value": ["Completed","Quality Assurance"], "operator": "n", "group": true },{ "fieldName": "ticketcategories", "value": "T10", "operator": "e", "group": true }]'
+    "x-row-limit" = "1000000"
+    "x-condition" = '[{ "fieldName": "assigned_user_id", "value": "4", "operator": "n", "group": true },{ "fieldName": "ticketstatus", "value": ["Closed","Quality Assurance"], "operator": "n", "group": true },{ "fieldName": "ticketcategories", "value": "T10", "operator": "e", "group": true }]'
   }
 
   $response50 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebservicePremium/HelpDesk/RecordsList" -Method 'GET' -Headers $headersYeti3
@@ -1049,7 +1058,7 @@ function UpdateTicketIfProblemResolvedItself {
           "Authorization" = "Basic YXBpLXByZW1pdW06ZmFzZGZkc2F0QUFBYXdlcmZkMzQxMmUhISE="
           "Content-Type" = "application/json"
           "x-token" = $token
-          "x-row-limit" = "5000"
+          "x-row-limit" = "1000000"
           "x-condition" = "[{ ""fieldName"": ""commentcontent"", ""value"": ""The Host state recovered. The ticket can now be closed"", ""operator"": ""c"", ""group"": true },{ ""fieldName"": ""related_to"", ""value"": ""$global:r"", ""operator"": ""eid"", ""group"": true }]"
         }
 
@@ -1154,7 +1163,7 @@ function UpdateTicketIfProblemResolvedItself {
           "Authorization" = "Basic YXBpLXByZW1pdW06ZmFzZGZkc2F0QUFBYXdlcmZkMzQxMmUhISE="
           "Content-Type" = "application/json"
           "x-token" = $token
-          "x-row-limit" = "5000"
+          "x-row-limit" = "1000000"
           "x-condition" = "[{ ""fieldName"": ""commentcontent"", ""value"": ""The Service state recovered. The ticket can now be closed"", ""operator"": ""c"", ""group"": true },{ ""fieldName"": ""related_to"", ""value"": ""$global:r"", ""operator"": ""eid"", ""group"": true }]"
         }
 
