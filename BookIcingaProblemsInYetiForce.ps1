@@ -996,7 +996,7 @@ function CheckIfProblemResolvedItself {
 
 function UpdateTicketIfProblemResolvedItself {
 
-  # --- Retrieve the list of the Icinga tickets booked, accepted and not Closed or in quality control ---
+  # Retrieve the list of the Icinga tickets booked, accepted and not completed or in quality control with category maintenance
 
   # --- Yeti Ticket Header ---
 
@@ -1014,7 +1014,7 @@ function UpdateTicketIfProblemResolvedItself {
   $headersOnly2 = ($opentickets2 | Get-Member -MemberType NoteProperty).Name
   $global:response = [regex]::Matches(($headersOnly2 | Out-String),'\d+') | ForEach-Object { $_.Value } | Sort-Object -Unique
 
-  # --- Check if the Host or Service recovered in the meantime ---
+  # Check if the Host or Service recovered in the meantime
 
   foreach ($global:r in $global:response) {
 
@@ -1029,7 +1029,7 @@ function UpdateTicketIfProblemResolvedItself {
 `n}"
 
 
-    $response53 = Invoke-RestMethod "https://monitoring.wiseserve.net:5665/v1/objects/comments" -Method 'POST' -Headers $headers -Body $body53
+    $response53 = Invoke-RestMethod 'https://monitoring.wiseserve.net:5665/v1/objects/comments' -Method 'POST' -Headers $headers -Body $body53
 
     $gethostname2 = $response53 | Select-Object -ExpandProperty results | Select-Object -ExpandProperty attrs | Select-Object -ExpandProperty host_name
     $getservicename2 = $response53 | Select-Object -ExpandProperty results | Select-Object -ExpandProperty attrs | Select-Object -ExpandProperty service_name
@@ -1045,13 +1045,15 @@ function UpdateTicketIfProblemResolvedItself {
       [System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
 
 
-      $response54 = Invoke-RestMethod "https://monitoring.wiseserve.net:5665/v1/objects/hosts" -Method 'POST' -Headers $headers -Body $body59
+      $response54 = Invoke-RestMethod 'https://monitoring.wiseserve.net:5665/v1/objects/hosts' -Method 'POST' -Headers $headers -Body $body59
 
       $response52 = $response54 | Select-Object -ExpandProperty results | Select-Object -ExpandProperty name -ErrorAction Ignore
 
       if ($response52 -ne $null) {
 
-        # --- Check if the ticket already received a notification about the Host state recovery in the last 24h ---
+        # Check if the ticket already received a notification about the Host state recovery in the last 24h
+
+        # --- Yeti Comments Header ---
 
         $headersYeti4 = @{
           "X-API-KEY" = "h23CYbjJPka6zTNPG4Yc5AGN946tCy4p"
@@ -1062,11 +1064,33 @@ function UpdateTicketIfProblemResolvedItself {
           "x-condition" = "[{ ""fieldName"": ""commentcontent"", ""value"": ""The Host state recovered. The ticket can now be closed"", ""operator"": ""c"", ""group"": true },{ ""fieldName"": ""related_to"", ""value"": ""$global:r"", ""operator"": ""eid"", ""group"": true }]"
         }
 
+
         $checknotification = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebservicePremium/ModComments/RecordsList" -Method 'GET' -Headers $headersYeti4
         $checknotificationid = $checknotification.result.records
-        $headersOnly3 = ($checknotificationid | Get-Member -MemberType NoteProperty).Name | Select-Object -First 1
-        $getnotificationdate = $checknotification | Select-Object -ExpandProperty result | Select-Object -ExpandProperty records | Select-Object -ExpandProperty $headersOnly3 | Select-Object -ExpandProperty modifiedtime -ErrorAction Ignore
-        if ($getnotificationdate -ne $null) {
+        $headersOnly4 = ($checknotificationid | Get-Member -MemberType NoteProperty).Name | Select-Object -Last 1
+        $getnotificationdate = $checknotification | Select-Object -ExpandProperty result | Select-Object -ExpandProperty records | Select-Object -ExpandProperty $headersOnly4 | Select-Object -ExpandProperty modifiedtime -ErrorAction Ignore
+
+        if ($getnotificationdate -eq $null) {
+
+          # --- Post comment in YetiForce Ticket ---
+
+          $body60 = "{
+`n    `"related_to`": $global:r,
+`n    `"commentcontent`": `"The Host state recovered. The ticket can now be closed.`"
+`n}"
+
+          $response60 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebservicePremium/ModComments/Record" -Method 'POST' -Headers $headersYeti4 -Body $body60
+
+          # --- Change YetiForce ticket status to System Note Added ---
+
+          $statusbody53 = "{
+`n    `"ticketstatus`": `"System Note Added`"
+`n}"
+
+          $updatestatus61 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebservicePremium/HelpDesk/Record/$global:r" -Method 'PUT' -Headers $headersYeti4 -Body $statusbody53
+
+        }
+        else {
 
           # --- Extract and convert to date object, then format ---
           # --- Use only the first 16 characters (date and time), and set the culture to en-GB ---
@@ -1074,10 +1098,13 @@ function UpdateTicketIfProblemResolvedItself {
           $parsedDate = [datetime]::ParseExact($getnotificationdate.Substring(0,16),'dd/MM/yyyy HH:mm',$culture)
           $notificationdate = $parsedDate.ToString('dd MMMM yyyy HH:mm:ss',$culture)
           $timespan = New-TimeSpan -Hours 24
+
           if (((Get-Date) - [datetime]$notificationdate) -lt $timespan) {
 
             Write-Host "Host - Ticket and user notifications will be skiped. It is less than 24h since the last notification - Ticket ID: $global:r"
+
           }
+
           else {
 
             # --- Post comment in YetiForce Ticket ---
@@ -1098,45 +1125,9 @@ function UpdateTicketIfProblemResolvedItself {
             $updatestatus61 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebservicePremium/HelpDesk/Record/$global:r" -Method 'PUT' -Headers $headersYeti4 -Body $statusbody53
           }
         }
-        else {
-          # --- Post comment in YetiForce Ticket ---
-
-          $body60 = "{
-`n    `"related_to`": $global:r,
-`n    `"commentcontent`": `"The Host state recovered. The ticket can now be closed.`"
-`n}"
-
-          $response60 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebservicePremium/ModComments/Record" -Method 'POST' -Headers $headersYeti4 -Body $body60
-
-          # --- Change YetiForce ticket status to System Note Added ---
-
-          $statusbody53 = "{
-`n    `"ticketstatus`": `"System Note Added`"
-`n}"
-
-          $updatestatus61 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebservicePremium/HelpDesk/Record/$global:r" -Method 'PUT' -Headers $headersYeti4 -Body $statusbody53
-        }
-      }
-      else {
-
-        # --- Post comment in YetiForce Ticket ---
-
-        $body60 = "{
-`n    `"related_to`": $global:r,
-`n    `"commentcontent`": `"The Host state recovered. The ticket can now be closed.`"
-`n}"
-
-        $response60 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebservicePremium/ModComments/Record" -Method 'POST' -Headers $headersYeti4 -Body $body60
-
-        # --- Change YetiForce ticket status to System Note Added ---
-
-        $statusbody53 = "{
-`n    `"ticketstatus`": `"System Note Added`"
-`n}"
-
-        $updatestatus61 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebservicePremium/HelpDesk/Record/$global:r" -Method 'PUT' -Headers $headersYeti4 -Body $statusbody53
       }
     }
+
     else {
       $StatusRecovered = $gethostname2 + "!" + $getservicename2
 
@@ -1149,14 +1140,16 @@ function UpdateTicketIfProblemResolvedItself {
       [System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
 
 
-      $response55 = Invoke-RestMethod "https://monitoring.wiseserve.net:5665/v1/objects/services" -Method 'POST' -Headers $headers -Body $body61
+      $response55 = Invoke-RestMethod 'https://monitoring.wiseserve.net:5665/v1/objects/services' -Method 'POST' -Headers $headers -Body $body61
 
       $response56 = $response55 | Select-Object -ExpandProperty results | Select-Object -ExpandProperty name -ErrorAction Ignore
 
       if ($response56 -ne $null) {
 
 
-        # --- Check if the ticket already received a notification about the Service state recovery in the last 24h ---
+        # Check if the ticket already received a notification about the Service state recovery in the last 24h
+
+        # --- Yeti Comments Header ---
 
         $headersYeti5 = @{
           "X-API-KEY" = "h23CYbjJPka6zTNPG4Yc5AGN946tCy4p"
@@ -1169,10 +1162,31 @@ function UpdateTicketIfProblemResolvedItself {
 
         $checknotification = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebservicePremium/ModComments/RecordsList" -Method 'GET' -Headers $headersYeti5
         $checknotificationid = $checknotification.result.records
-        $headersOnly4 = ($checknotificationid | Get-Member -MemberType NoteProperty).Name | Select-Object -First 1
-        $getnotificationdate = $checknotification | Select-Object -ExpandProperty result | Select-Object -ExpandProperty records | Select-Object -ExpandProperty $headersOnly4 | Select-Object -ExpandProperty modifiedtime -ErrorAction Ignore
+        $headersOnly5 = ($checknotificationid | Get-Member -MemberType NoteProperty).Name | Select-Object -Last 1
+        $getnotificationdate = $checknotification | Select-Object -ExpandProperty result | Select-Object -ExpandProperty records | Select-Object -ExpandProperty $headersOnly5 | Select-Object -ExpandProperty modifiedtime -ErrorAction Ignore
 
-        if ($getnotificationdate -ne $null) {
+        if ($getnotificationdate -eq $null) {
+
+          # --- Post comment in YetiForce Ticket ---
+
+          $body62 = "{
+`n    `"related_to`": $global:r,
+`n    `"commentcontent`": `"The Service state recovered. The ticket can now be closed.`"
+`n}"
+
+          $response62 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebservicePremium/ModComments/Record" -Method 'POST' -Headers $headersYeti5 -Body $body62
+
+          # --- Change YetiForce ticket status to System Note Added ---
+
+          $statusbody54 = "{
+`n    `"ticketstatus`": `"System Note Added`"
+`n}"
+
+          $updatestatus62 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebservicePremium/HelpDesk/Record/$global:r" -Method 'PUT' -Headers $headersYeti5 -Body $statusbody54
+
+        }
+
+        else {
 
           # --- Extract and convert to date object, then format ---
           # --- Use only the first 16 characters (date and time), and set the culture to en-GB ---
@@ -1180,13 +1194,14 @@ function UpdateTicketIfProblemResolvedItself {
           $parsedDate = [datetime]::ParseExact($getnotificationdate.Substring(0,16),'dd/MM/yyyy HH:mm',$culture)
           $notificationdate = $parsedDate.ToString('dd MMMM yyyy HH:mm:ss',$culture)
           $timespan = New-TimeSpan -Hours 24
+
           if (((Get-Date) - [datetime]$notificationdate) -lt $timespan) {
 
-            Write-Host "Host - Ticket and user notifications will be skiped. It is less than 24h since the last notification - Ticket ID: $global:r"
+            Write-Host "Service - Ticket and user notifications will be skiped. It is less than 24h since the last notification - Ticket ID: $global:r"
 
           }
-          else {
 
+          else {
 
             # --- Post comment in YetiForce Ticket ---
 
@@ -1206,49 +1221,10 @@ function UpdateTicketIfProblemResolvedItself {
             $updatestatus62 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebservicePremium/HelpDesk/Record/$global:r" -Method 'PUT' -Headers $headersYeti5 -Body $statusbody54
           }
         }
-        else {
-
-          # --- Post comment in YetiForce Ticket ---
-
-          $body62 = "{
-`n    `"related_to`": $global:r,
-`n    `"commentcontent`": `"The Service state recovered. The ticket can now be closed.`"
-`n}"
-
-          $response62 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebservicePremium/ModComments/Record" -Method 'POST' -Headers $headersYeti5 -Body $body62
-
-          # --- Change YetiForce ticket status to System Note Added ---
-
-          $statusbody54 = "{
-`n    `"ticketstatus`": `"System Note Added`"
-`n}"
-
-          $updatestatus62 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebservicePremium/HelpDesk/Record/$global:r" -Method 'PUT' -Headers $headersYeti5 -Body $statusbody54
-        }
-      }
-      else {
-
-        # --- Post comment in YetiForce Ticket ---
-
-        $body62 = "{
-`n    `"related_to`": $global:r,
-`n    `"commentcontent`": `"The Service state recovered. The ticket can now be closed.`"
-`n}"
-
-        $response62 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebservicePremium/ModComments/Record" -Method 'POST' -Headers $headersYeti5 -Body $body62
-
-        # --- Change YetiForce ticket status to System Note Added ---
-
-        $statusbody54 = "{
-`n    `"ticketstatus`": `"System Note Added`"
-`n}"
-
-        $updatestatus62 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebservicePremium/HelpDesk/Record/$global:r" -Method 'PUT' -Headers $headersYeti5 -Body $statusbody54
       }
     }
   }
 }
-
 
 # --- Call GetHostProblems Function ---
 
