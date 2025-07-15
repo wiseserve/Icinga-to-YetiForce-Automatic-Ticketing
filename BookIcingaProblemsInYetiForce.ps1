@@ -218,7 +218,7 @@ function RunHosts {
 `n    `"ticketcategories`": `"T10`",
 `n    `"ticketstatus`": `"Open`",
 `n    `"issue_type`": `"T83`",
-`n    `"description`": `"<p><a href='https://monitoring.wiseserve.net/dashboard#!/monitoring/host/show?host=$hh' target='_blank'>https://monitoring.wiseserve.net/dashboard#!/monitoring/host/show?host=$hh</a></p>\n<p>$outputhost</p>`"
+`n    `"description`": `"<p>$outputhost</p>\n<p><a href='https://monitoring.wiseserve.net/dashboard#!/monitoring/host/show?host=$hh' target='_blank'>https://monitoring.wiseserve.net/dashboard#!/monitoring/host/show?host=$hh</a></p>`"
 `n}"
 
       $response7 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebservicePremium/HelpDesk/Record" -Method 'POST' -Headers $headersYeti -Body $body7
@@ -295,7 +295,7 @@ function RunHosts {
 `n    `"ticketcategories`": `"T10`",
 `n    `"ticketstatus`": `"Open`",
 `n    `"issue_type`": `"T83`",
-`n    `"description`": `"<p><a href='https://monitoring.wiseserve.net/dashboard#!/monitoring/host/show?host=$hh' target='_blank'>https://monitoring.wiseserve.net/dashboard#!/monitoring/host/show?host=$hh</a></p>\n<p>$outputhost</p>`"
+`n    `"description`": `"<p>$outputhost</p>\n<p><a href='https://monitoring.wiseserve.net/dashboard#!/monitoring/host/show?host=$hh' target='_blank'>https://monitoring.wiseserve.net/dashboard#!/monitoring/host/show?host=$hh</a></p>`"
 `n}"
 
         $response17 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebservicePremium/HelpDesk/Record" -Method 'POST' -Headers $headersYeti -Body $body7
@@ -378,7 +378,7 @@ function RunHosts {
 `n    `"ticketcategories`": `"T10`",
 `n    `"ticketstatus`": `"Open`",
 `n    `"issue_type`": `"T83`",
-`n    `"description`": `"<p><a href='https://monitoring.wiseserve.net/dashboard#!/monitoring/host/show?host=$hh' target='_blank'>https://monitoring.wiseserve.net/dashboard#!/monitoring/host/show?host=$hh</a></p>\n<p>$outputhost</p>`"
+`n    `"description`": `"<p>$outputhost</p>\n<p><a href='https://monitoring.wiseserve.net/dashboard#!/monitoring/host/show?host=$hh' target='_blank'>https://monitoring.wiseserve.net/dashboard#!/monitoring/host/show?host=$hh</a></p>`"
 `n}"
 
           $response12 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebservicePremium/HelpDesk/Record" -Method 'POST' -Headers $headersYeti -Body $body12
@@ -582,7 +582,7 @@ function RunServices {
 `n    `"ticketcategories`": `"T10`",
 `n    `"ticketstatus`": `"Open`",
 `n    `"issue_type`": `"T86`",
-`n    `"description`": `"<p><a href='https://monitoring.wiseserve.net/dashboard#!/monitoring/service/show?host=$hh2&service=$service_name' target='_blank'>https://monitoring.wiseserve.net/dashboard#!/monitoring/service/show?host=$hh2&service=$service_name0</a></p>\n<p>$outputservice0</p>`"
+`n    `"description`": `"<p>$outputservice0</p>\n<p><a href='https://monitoring.wiseserve.net/dashboard#!/monitoring/service/show?host=$hh2&service=$service_name' target='_blank'>https://monitoring.wiseserve.net/dashboard#!/monitoring/service/show?host=$hh2&service=$service_name0</a></p>`"
 `n}"
 
       $response20 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebservicePremium/HelpDesk/Record" -Method 'POST' -Headers $headersYeti -Body $body20
@@ -664,7 +664,7 @@ function RunServices {
 `n    `"ticketcategories`": `"T10`",
 `n    `"ticketstatus`": `"Open`",
 `n    `"issue_type`": `"T86`",
-`n    `"description`": `"<p><a href='https://monitoring.wiseserve.net/dashboard#!/monitoring/service/show?host=$hh2&service=$service_name' target='_blank'>https://monitoring.wiseserve.net/dashboard#!/monitoring/service/show?host=$hh2&service=$service_name0</a></p>\n<p>$outputservice0</p>`"
+`n    `"description`": `"<p>$outputservice0</p>\n<p><a href='https://monitoring.wiseserve.net/dashboard#!/monitoring/service/show?host=$hh2&service=$service_name' target='_blank'>https://monitoring.wiseserve.net/dashboard#!/monitoring/service/show?host=$hh2&service=$service_name0</a></p>`"
 `n}"
 
         $response24 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebservicePremium/HelpDesk/Record" -Method 'POST' -Headers $headersYeti -Body $body24
@@ -751,7 +751,7 @@ function RunServices {
 `n    `"ticketcategories`": `"T10`",
 `n    `"ticketstatus`": `"Open`",
 `n    `"issue_type`": `"T86`",
-`n    `"description`": `"<p><a href='https://monitoring.wiseserve.net/dashboard#!/monitoring/service/show?host=$hh2&service=$service_name' target='_blank'>https://monitoring.wiseserve.net/dashboard#!/monitoring/service/show?host=$hh2&service=$service_name0</a></p>\n<p>$outputservice0</p>`"
+`n    `"description`": `"<p>$outputservice0</p>\n<p><a href='https://monitoring.wiseserve.net/dashboard#!/monitoring/service/show?host=$hh2&service=$service_name' target='_blank'>https://monitoring.wiseserve.net/dashboard#!/monitoring/service/show?host=$hh2&service=$service_name0</a></p>`"
 `n}"
 
           $response29 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebservicePremium/HelpDesk/Record" -Method 'POST' -Headers $headersYeti -Body $body29
