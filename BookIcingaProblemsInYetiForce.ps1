@@ -186,7 +186,7 @@ function RunHosts {
 
     # --- Escape "\" character from Host description output ---
 
-    $global:outputhost = $outputhost1 -replace '\\','\\\\'
+    $global:outputhost = $outputhost1 -replace '\\','\\\\' -replace '"', '\"' -replace "(\r\n|\r|\n)", '\n'
 
     # --- Get YetiForce Client ID from Icinga ---
 
