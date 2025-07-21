@@ -970,7 +970,7 @@ function CheckIfProblemResolvedItself {
 
         $body11 = "{
 `n    `"related_to`": $global:r,
-`n    `"commentcontent`": `"The Host state recovered`"
+`n    `"commentcontent`": `"The Service state recovered`"
 `n}"
 
         $response11 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebservicePremium/ModComments/Record" -Method 'POST' -Headers $headersYeti2 -Body $body11
