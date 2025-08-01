@@ -2,7 +2,7 @@
 ## "T10": "Monitoring"
 
 ### Ticket Status Legend
-## "Closed": "Completed"
+## "Closed": "Completed" - Only used on POST command and API queries
 
 ### Group
 ## "4": "Unassigned"
@@ -366,7 +366,7 @@ function RunHosts {
         $response11 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebservicePremium/HelpDesk/Record/$commenthost" -Method 'GET' -Headers $headersYeti
         $global:ticketstatus = $response11 | Select-Object -ExpandProperty result | Select-Object -ExpandProperty data | Select-Object -ExpandProperty ticketstatus
 
-        if ($global:ticketstatus -eq "Closed") {
+        if ($global:ticketstatus -eq "Completed") {
 
           # --- Book a ticket in YetiForce ---
 
@@ -735,7 +735,7 @@ function RunServices {
         $response28 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebservicePremium/HelpDesk/Record/$commentservice" -Method 'GET' -Headers $headersYeti
         $global:ticketstatus2 = $response28 | Select-Object -ExpandProperty result | Select-Object -ExpandProperty data | Select-Object -ExpandProperty ticketstatus
 
-        if ($global:ticketstatus2 -eq "Closed") {
+        if ($global:ticketstatus2 -eq "Completed") {
 
           # --- Book a ticket in YetiForce ---
 
