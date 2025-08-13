@@ -22,30 +22,30 @@ $global:expirytime = (Get-Date (Get-Date).addDays(1) -UFormat %s)
 # --- Yeti Token Headers ---
 
 $global:tokenheader = @{
-  "x-api-key" = "h23CYbjJPka6zTNPG4Yc5AGN946tCy4p"
+  "x-api-key" = "uGCNXKbUhrB3Asq1gFNQ7cePsBsktKFP"
   "Content-Type" = "application/x-www-form-urlencoded"
-  "Authorization" = "Basic YXBpLXByZW1pdW06ZmFzZGZkc2F0QUFBYXdlcmZkMzQxMmUhISE="
+  "Authorization" = "Basic YXBpOmZhc2RmZHNhdEFBQWF3ZXJmZDM0MTJlISEh"
 }
 
 # --- Yeti Token Body ---
 
 $global:tokenbody = @"
 {
-    "userName": "sysadm@wiseserve.net",
+    "userName": "no-reply@wiseserve.net",
     "password": "fasdfdsatAAAawerfd3412e!!!"
 }
 "@
 
 # --- Retrieve Yeti Token ---
 
-$global:tokenresponse = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebservicePremium/Users/Login" -Method 'POST' -Headers $tokenheader -Body $tokenbody -ContentType 'application/json'
+$global:tokenresponse = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebserviceStandard/Users/Login" -Method 'POST' -Headers $tokenheader -Body $tokenbody -ContentType 'application/json'
 $global:token = $global:tokenresponse.result.token
 
 # --- Yeti Ticket Header ---
 
 $global:headersYeti = @{
-  "X-API-KEY" = "h23CYbjJPka6zTNPG4Yc5AGN946tCy4p"
-  "Authorization" = "Basic YXBpLXByZW1pdW06ZmFzZGZkc2F0QUFBYXdlcmZkMzQxMmUhISE="
+  "X-API-KEY" = "uGCNXKbUhrB3Asq1gFNQ7cePsBsktKFP"
+  "Authorization" = "Basic YXBpOmZhc2RmZHNhdEFBQWF3ZXJmZDM0MTJlISEh"
   "Content-Type" = "application/json"
   "x-token" = $token
   "x-row-limit" = "1000000"
@@ -221,12 +221,12 @@ function RunHosts {
 `n    `"description`": `"<p>$outputhost</p>\n<p><a href='https://monitoring.wiseserve.net/dashboard#!/monitoring/host/show?host=$hh' target='_blank'>https://monitoring.wiseserve.net/dashboard#!/monitoring/host/show?host=$hh</a></p>`"
 `n}"
 
-      $response7 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebservicePremium/HelpDesk/Record" -Method 'POST' -Headers $headersYeti -Body $body7
+      $response7 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebserviceStandard/HelpDesk/Record" -Method 'POST' -Headers $headersYeti -Body $body7
       $ticketid1 = $response7 | Select-Object -ExpandProperty result | Select-Object -ExpandProperty id
 
       # --- Retrieving Ticket Number after the ticket has been booked in ---
 
-      $getticketnumber1 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebservicePremium/HelpDesk/Record/$ticketid1" -Method 'GET' -Headers $headersYeti
+      $getticketnumber1 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebserviceStandard/HelpDesk/Record/$ticketid1" -Method 'GET' -Headers $headersYeti
       $ticketnumber1 = $getticketnumber1 | Select-Object -ExpandProperty result | Select-Object -ExpandProperty data | Select-Object -ExpandProperty ticket_no
 
       # --- Post a comment in Icinga Host with the YetiForce ticket ID ---
@@ -275,7 +275,7 @@ function RunHosts {
 
       if ($checkifnumber -eq $true) {
 
-        $response8 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebservicePremium/HelpDesk/Record/$commenthost" -Method 'GET' -Headers $headersYeti
+        $response8 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebserviceStandard/HelpDesk/Record/$commenthost" -Method 'GET' -Headers $headersYeti
         $response8 | ConvertTo-Json
 
         $verifyticketid = $response8 | Select-Object -ExpandProperty result | Select-Object -ExpandProperty id
@@ -298,12 +298,12 @@ function RunHosts {
 `n    `"description`": `"<p>$outputhost</p>\n<p><a href='https://monitoring.wiseserve.net/dashboard#!/monitoring/host/show?host=$hh' target='_blank'>https://monitoring.wiseserve.net/dashboard#!/monitoring/host/show?host=$hh</a></p>`"
 `n}"
 
-        $response17 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebservicePremium/HelpDesk/Record" -Method 'POST' -Headers $headersYeti -Body $body7
+        $response17 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebserviceStandard/HelpDesk/Record" -Method 'POST' -Headers $headersYeti -Body $body7
         $ticketid2 = $response17 | Select-Object -ExpandProperty result | Select-Object -ExpandProperty id
 
         # --- Retrieving Ticket Number after the ticket has been booked in ---
 
-        $getticketnumber2 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebservicePremium/HelpDesk/Record/$ticketid2" -Method 'GET' -Headers $headersYeti
+        $getticketnumber2 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebserviceStandard/HelpDesk/Record/$ticketid2" -Method 'GET' -Headers $headersYeti
         $ticketnumber2 = $getticketnumber2 | Select-Object -ExpandProperty result | Select-Object -ExpandProperty data | Select-Object -ExpandProperty ticket_no
 
         # --- Cleaning up the comments in Icinga Host ---
@@ -363,7 +363,7 @@ function RunHosts {
 
         # --- Check if the YetiForce ticket is closed ---
 
-        $response11 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebservicePremium/HelpDesk/Record/$commenthost" -Method 'GET' -Headers $headersYeti
+        $response11 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebserviceStandard/HelpDesk/Record/$commenthost" -Method 'GET' -Headers $headersYeti
         $global:ticketstatus = $response11 | Select-Object -ExpandProperty result | Select-Object -ExpandProperty data | Select-Object -ExpandProperty ticketstatus
 
         if ($global:ticketstatus -eq "Completed") {
@@ -381,12 +381,12 @@ function RunHosts {
 `n    `"description`": `"<p>$outputhost</p>\n<p><a href='https://monitoring.wiseserve.net/dashboard#!/monitoring/host/show?host=$hh' target='_blank'>https://monitoring.wiseserve.net/dashboard#!/monitoring/host/show?host=$hh</a></p>`"
 `n}"
 
-          $response12 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebservicePremium/HelpDesk/Record" -Method 'POST' -Headers $headersYeti -Body $body12
+          $response12 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebserviceStandard/HelpDesk/Record" -Method 'POST' -Headers $headersYeti -Body $body12
           $ticketid3 = $response12 | Select-Object -ExpandProperty result | Select-Object -ExpandProperty id
 
           # --- Retrieving Ticket Number after the ticket has been booked in ---
 
-          $getticketnumber3 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebservicePremium/HelpDesk/Record/$ticketid3" -Method 'GET' -Headers $headersYeti
+          $getticketnumber3 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebserviceStandard/HelpDesk/Record/$ticketid3" -Method 'GET' -Headers $headersYeti
           $ticketnumber3 = $getticketnumber3 | Select-Object -ExpandProperty result | Select-Object -ExpandProperty data | Select-Object -ExpandProperty ticket_no
 
           # --- Cleaning up the comments in Icinga Host ---
@@ -446,7 +446,7 @@ function RunHosts {
 
           # --- Retrieving Ticket Number from ticket ID ---
 
-          $getticketnumber4 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebservicePremium/HelpDesk/Record/$commenthost" -Method 'GET' -Headers $headersYeti
+          $getticketnumber4 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebserviceStandard/HelpDesk/Record/$commenthost" -Method 'GET' -Headers $headersYeti
           $ticketnumber4 = $getticketnumber4 | Select-Object -ExpandProperty result | Select-Object -ExpandProperty data | Select-Object -ExpandProperty ticket_no
 
           # --- Acknowledge Icinga Host with the YetiForce Ticket Number ---
@@ -475,7 +475,7 @@ function RunHosts {
 `n    `"commentcontent`": `"The problem is still on the board`"
 `n}"
 
-          $response10 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebservicePremium/ModComments/Record" -Method 'POST' -Headers $headersYeti -Body $body10
+          $response10 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebserviceStandard/ModComments/Record" -Method 'POST' -Headers $headersYeti -Body $body10
 
           # --- Change YetiForce ticket status to System Note Added ---
 
@@ -483,7 +483,7 @@ function RunHosts {
 `n    `"ticketstatus`": `"System Note Added`"
 `n}"
 
-          $updatestatus1 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebservicePremium/HelpDesk/Record/$commenthost" -Method 'PUT' -Headers $headersYeti -Body $statusbody1
+          $updatestatus1 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebserviceStandard/HelpDesk/Record/$commenthost" -Method 'PUT' -Headers $headersYeti -Body $statusbody1
         }
       }
     }
@@ -585,12 +585,12 @@ function RunServices {
 `n    `"description`": `"<p>$outputservice0</p>\n<p><a href='https://monitoring.wiseserve.net/dashboard#!/monitoring/service/show?host=$hh2&service=$service_name' target='_blank'>https://monitoring.wiseserve.net/dashboard#!/monitoring/service/show?host=$hh2&service=$service_name0</a></p>`"
 `n}"
 
-      $response20 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebservicePremium/HelpDesk/Record" -Method 'POST' -Headers $headersYeti -Body $body20
+      $response20 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebserviceStandard/HelpDesk/Record" -Method 'POST' -Headers $headersYeti -Body $body20
       $ticketid20 = $response20 | Select-Object -ExpandProperty result | Select-Object -ExpandProperty id
 
       # --- Retrieving Ticket Number after the ticket has been booked in ---
 
-      $getticketnumber5 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebservicePremium/HelpDesk/Record/$ticketid20" -Method 'GET' -Headers $headersYeti
+      $getticketnumber5 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebserviceStandard/HelpDesk/Record/$ticketid20" -Method 'GET' -Headers $headersYeti
       $ticketnumber5 = $getticketnumber5 | Select-Object -ExpandProperty result | Select-Object -ExpandProperty data | Select-Object -ExpandProperty ticket_no
 
 
@@ -640,7 +640,7 @@ function RunServices {
 
       if ($checkifnumber2 -eq $true) {
 
-        $response23 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebservicePremium/HelpDesk/Record/$commentservice" -Method 'GET' -Headers $headersYeti
+        $response23 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebserviceStandard/HelpDesk/Record/$commentservice" -Method 'GET' -Headers $headersYeti
         $response23 | ConvertTo-Json
 
         $verifyticketid2 = $response23 | Select-Object -ExpandProperty result | Select-Object -ExpandProperty id
@@ -667,12 +667,12 @@ function RunServices {
 `n    `"description`": `"<p>$outputservice0</p>\n<p><a href='https://monitoring.wiseserve.net/dashboard#!/monitoring/service/show?host=$hh2&service=$service_name' target='_blank'>https://monitoring.wiseserve.net/dashboard#!/monitoring/service/show?host=$hh2&service=$service_name0</a></p>`"
 `n}"
 
-        $response24 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebservicePremium/HelpDesk/Record" -Method 'POST' -Headers $headersYeti -Body $body24
+        $response24 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebserviceStandard/HelpDesk/Record" -Method 'POST' -Headers $headersYeti -Body $body24
         $ticketid21 = $response24 | Select-Object -ExpandProperty result | Select-Object -ExpandProperty id
 
         # --- Retrieving Ticket Number after the ticket has been booked in ---
 
-        $getticketnumber6 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebservicePremium/HelpDesk/Record/$ticketid21" -Method 'GET' -Headers $headersYeti
+        $getticketnumber6 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebserviceStandard/HelpDesk/Record/$ticketid21" -Method 'GET' -Headers $headersYeti
         $ticketnumber6 = $getticketnumber6 | Select-Object -ExpandProperty result | Select-Object -ExpandProperty data | Select-Object -ExpandProperty ticket_no
 
         # --- Cleaning up the comments in Icinga Service ---
@@ -732,7 +732,7 @@ function RunServices {
 
         # --- Check if the YetiForce ticket is closed ---
 
-        $response28 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebservicePremium/HelpDesk/Record/$commentservice" -Method 'GET' -Headers $headersYeti
+        $response28 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebserviceStandard/HelpDesk/Record/$commentservice" -Method 'GET' -Headers $headersYeti
         $global:ticketstatus2 = $response28 | Select-Object -ExpandProperty result | Select-Object -ExpandProperty data | Select-Object -ExpandProperty ticketstatus
 
         if ($global:ticketstatus2 -eq "Completed") {
@@ -754,12 +754,12 @@ function RunServices {
 `n    `"description`": `"<p>$outputservice0</p>\n<p><a href='https://monitoring.wiseserve.net/dashboard#!/monitoring/service/show?host=$hh2&service=$service_name' target='_blank'>https://monitoring.wiseserve.net/dashboard#!/monitoring/service/show?host=$hh2&service=$service_name0</a></p>`"
 `n}"
 
-          $response29 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebservicePremium/HelpDesk/Record" -Method 'POST' -Headers $headersYeti -Body $body29
+          $response29 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebserviceStandard/HelpDesk/Record" -Method 'POST' -Headers $headersYeti -Body $body29
           $ticketid22 = $response29 | Select-Object -ExpandProperty result | Select-Object -ExpandProperty id
 
           # --- Retrieving Ticket Number after the ticket has been booked in ---
 
-          $getticketnumber7 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebservicePremium/HelpDesk/Record/$ticketid22" -Method 'GET' -Headers $headersYeti
+          $getticketnumber7 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebserviceStandard/HelpDesk/Record/$ticketid22" -Method 'GET' -Headers $headersYeti
           $ticketnumber7 = $getticketnumber7 | Select-Object -ExpandProperty result | Select-Object -ExpandProperty data | Select-Object -ExpandProperty ticket_no
 
           # --- Cleaning up the comments in Icinga Service ---
@@ -819,7 +819,7 @@ function RunServices {
 
           # --- Retrieving Ticket Number from ticket ID ---
 
-          $getticketnumber8 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebservicePremium/HelpDesk/Record/$commentservice" -Method 'GET' -Headers $headersYeti
+          $getticketnumber8 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebserviceStandard/HelpDesk/Record/$commentservice" -Method 'GET' -Headers $headersYeti
           $ticketnumber8 = $getticketnumber8 | Select-Object -ExpandProperty result | Select-Object -ExpandProperty data | Select-Object -ExpandProperty ticket_no
 
           # --- Acknowledge Icinga Service with the YetiForce ticket ID ---
@@ -848,7 +848,7 @@ function RunServices {
 `n    `"commentcontent`": `"The problem is still on the board`"
 `n}"
 
-          $response34 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebservicePremium/ModComments/Record" -Method 'POST' -Headers $headersYeti -Body $body34
+          $response34 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebserviceStandard/ModComments/Record" -Method 'POST' -Headers $headersYeti -Body $body34
 
           # --- Change YetiForce ticket status to System Note Added ---
 
@@ -856,7 +856,7 @@ function RunServices {
 `n    `"ticketstatus`": `"System Note Added`"
 `n}"
 
-          $updatestatus2 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebservicePremium/HelpDesk/Record/$commentservice" -Method 'PUT' -Headers $headersYeti -Body $statusbody2
+          $updatestatus2 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebserviceStandard/HelpDesk/Record/$commentservice" -Method 'PUT' -Headers $headersYeti -Body $statusbody2
         }
       }
     }
@@ -870,15 +870,15 @@ function CheckIfProblemResolvedItself {
   # --- Yeti Ticket Header ---
 
   $headersYeti2 = @{
-    "X-API-KEY" = "h23CYbjJPka6zTNPG4Yc5AGN946tCy4p"
-    "Authorization" = "Basic YXBpLXByZW1pdW06ZmFzZGZkc2F0QUFBYXdlcmZkMzQxMmUhISE="
+    "X-API-KEY" = "uGCNXKbUhrB3Asq1gFNQ7cePsBsktKFP"
+    "Authorization" = "Basic YXBpOmZhc2RmZHNhdEFBQWF3ZXJmZDM0MTJlISEh"
     "Content-Type" = "application/json"
     "x-token" = $token
     "x-row-limit" = "1000000"
     "x-condition" = '[{ "fieldName": "assigned_user_id", "value": "4", "operator": "e", "group": true },{ "fieldName": "ticketstatus", "value": "Closed", "operator": "n", "group": true }]'
   }
 
-  $response0 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebservicePremium/HelpDesk/RecordsList" -Method 'GET' -Headers $headersYeti2
+  $response0 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebserviceStandard/HelpDesk/RecordsList" -Method 'GET' -Headers $headersYeti2
   $opentickets = $response0.result.records
   $headersOnly = ($opentickets | Get-Member -MemberType NoteProperty).Name
   $global:response = [regex]::Matches(($headersOnly | Out-String),'\d+') | ForEach-Object { $_.Value } | Sort-Object -Unique
@@ -930,7 +930,7 @@ function CheckIfProblemResolvedItself {
 `n    `"commentcontent`": `"The Host state recovered`"
 `n}"
 
-        $response10 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebservicePremium/ModComments/Record" -Method 'POST' -Headers $headersYeti2 -Body $body10
+        $response10 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebserviceStandard/ModComments/Record" -Method 'POST' -Headers $headersYeti2 -Body $body10
 
         # --- Change YetiForce ticket status to Closed, assign it to Administrator and add resolution too ---
 
@@ -943,8 +943,8 @@ function CheckIfProblemResolvedItself {
 `n    `"ticketstatus`": `"Closed`"
 `n}"
 
-        $updatestatus12 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebservicePremium/HelpDesk/Record/$global:r" -Method 'PUT' -Headers $headersYeti2 -Body $statusbody4
-        $updatestatus14 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebservicePremium/HelpDesk/Record/$global:r" -Method 'PUT' -Headers $headersYeti2 -Body $statusbody8
+        $updatestatus12 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebserviceStandard/HelpDesk/Record/$global:r" -Method 'PUT' -Headers $headersYeti2 -Body $statusbody4
+        $updatestatus14 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebserviceStandard/HelpDesk/Record/$global:r" -Method 'PUT' -Headers $headersYeti2 -Body $statusbody8
       }
     }
 
@@ -973,7 +973,7 @@ function CheckIfProblemResolvedItself {
 `n    `"commentcontent`": `"The Service state recovered`"
 `n}"
 
-        $response11 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebservicePremium/ModComments/Record" -Method 'POST' -Headers $headersYeti2 -Body $body11
+        $response11 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebserviceStandard/ModComments/Record" -Method 'POST' -Headers $headersYeti2 -Body $body11
 
         # --- Change YetiForce ticket status to Closed, assign it to Administrator and add resolution too ---
 
@@ -986,8 +986,8 @@ function CheckIfProblemResolvedItself {
 `n    `"ticketstatus`": `"Closed`"
 `n}"
 
-        $updatestatus11 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebservicePremium/HelpDesk/Record/$global:r" -Method 'PUT' -Headers $headersYeti2 -Body $statusbody3
-        $updatestatus13 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebservicePremium/HelpDesk/Record/$global:r" -Method 'PUT' -Headers $headersYeti2 -Body $statusbody5
+        $updatestatus11 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebserviceStandard/HelpDesk/Record/$global:r" -Method 'PUT' -Headers $headersYeti2 -Body $statusbody3
+        $updatestatus13 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebserviceStandard/HelpDesk/Record/$global:r" -Method 'PUT' -Headers $headersYeti2 -Body $statusbody5
       }
     }
   }
@@ -1001,15 +1001,15 @@ function UpdateTicketIfProblemResolvedItself {
   # --- Yeti Ticket Header ---
 
   $headersYeti3 = @{
-    "X-API-KEY" = "h23CYbjJPka6zTNPG4Yc5AGN946tCy4p"
-    "Authorization" = "Basic YXBpLXByZW1pdW06ZmFzZGZkc2F0QUFBYXdlcmZkMzQxMmUhISE="
+    "X-API-KEY" = "uGCNXKbUhrB3Asq1gFNQ7cePsBsktKFP"
+    "Authorization" = "Basic YXBpOmZhc2RmZHNhdEFBQWF3ZXJmZDM0MTJlISEh"
     "Content-Type" = "application/json"
     "x-token" = $token
     "x-row-limit" = "1000000"
     "x-condition" = '[{ "fieldName": "assigned_user_id", "value": "4", "operator": "n", "group": true },{ "fieldName": "ticketstatus", "value": ["Closed","Quality Assurance"], "operator": "n", "group": true },{ "fieldName": "ticketcategories", "value": "T10", "operator": "e", "group": true }]'
   }
 
-  $response50 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebservicePremium/HelpDesk/RecordsList" -Method 'GET' -Headers $headersYeti3
+  $response50 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebserviceStandard/HelpDesk/RecordsList" -Method 'GET' -Headers $headersYeti3
   $opentickets2 = $response50.result.records
   $headersOnly2 = ($opentickets2 | Get-Member -MemberType NoteProperty).Name
   $global:response = [regex]::Matches(($headersOnly2 | Out-String),'\d+') | ForEach-Object { $_.Value } | Sort-Object -Unique
@@ -1056,8 +1056,8 @@ function UpdateTicketIfProblemResolvedItself {
         # --- Yeti Comments Header ---
 
         $headersYeti4 = @{
-          "X-API-KEY" = "h23CYbjJPka6zTNPG4Yc5AGN946tCy4p"
-          "Authorization" = "Basic YXBpLXByZW1pdW06ZmFzZGZkc2F0QUFBYXdlcmZkMzQxMmUhISE="
+          "X-API-KEY" = "uGCNXKbUhrB3Asq1gFNQ7cePsBsktKFP"
+          "Authorization" = "Basic YXBpOmZhc2RmZHNhdEFBQWF3ZXJmZDM0MTJlISEh"
           "Content-Type" = "application/json"
           "x-token" = $token
           "x-row-limit" = "1000000"
@@ -1065,7 +1065,7 @@ function UpdateTicketIfProblemResolvedItself {
         }
 
 
-        $checknotification = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebservicePremium/ModComments/RecordsList" -Method 'GET' -Headers $headersYeti4
+        $checknotification = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebserviceStandard/ModComments/RecordsList" -Method 'GET' -Headers $headersYeti4
         $checknotificationid = $checknotification.result.records
         $headersOnly4 = ($checknotificationid | Get-Member -MemberType NoteProperty).Name | Select-Object -Last 1
         $getnotificationdate = $checknotification | Select-Object -ExpandProperty result | Select-Object -ExpandProperty records | Select-Object -ExpandProperty $headersOnly4 | Select-Object -ExpandProperty modifiedtime -ErrorAction Ignore
@@ -1079,7 +1079,7 @@ function UpdateTicketIfProblemResolvedItself {
 `n    `"commentcontent`": `"The Host state recovered. The ticket can now be closed.`"
 `n}"
 
-          $response60 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebservicePremium/ModComments/Record" -Method 'POST' -Headers $headersYeti4 -Body $body60
+          $response60 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebserviceStandard/ModComments/Record" -Method 'POST' -Headers $headersYeti4 -Body $body60
 
           # --- Change YetiForce ticket status to System Note Added ---
 
@@ -1087,7 +1087,7 @@ function UpdateTicketIfProblemResolvedItself {
 `n    `"ticketstatus`": `"System Note Added`"
 `n}"
 
-          $updatestatus61 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebservicePremium/HelpDesk/Record/$global:r" -Method 'PUT' -Headers $headersYeti4 -Body $statusbody53
+          $updatestatus61 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebserviceStandard/HelpDesk/Record/$global:r" -Method 'PUT' -Headers $headersYeti4 -Body $statusbody53
 
         }
         else {
@@ -1114,7 +1114,7 @@ function UpdateTicketIfProblemResolvedItself {
 `n    `"commentcontent`": `"The Host state recovered. The ticket can now be closed.`"
 `n}"
 
-            $response60 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebservicePremium/ModComments/Record" -Method 'POST' -Headers $headersYeti4 -Body $body60
+            $response60 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebserviceStandard/ModComments/Record" -Method 'POST' -Headers $headersYeti4 -Body $body60
 
             # --- Change YetiForce ticket status to System Note Added ---
 
@@ -1122,7 +1122,7 @@ function UpdateTicketIfProblemResolvedItself {
 `n    `"ticketstatus`": `"System Note Added`"
 `n}"
 
-            $updatestatus61 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebservicePremium/HelpDesk/Record/$global:r" -Method 'PUT' -Headers $headersYeti4 -Body $statusbody53
+            $updatestatus61 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebserviceStandard/HelpDesk/Record/$global:r" -Method 'PUT' -Headers $headersYeti4 -Body $statusbody53
           }
         }
       }
@@ -1152,15 +1152,15 @@ function UpdateTicketIfProblemResolvedItself {
         # --- Yeti Comments Header ---
 
         $headersYeti5 = @{
-          "X-API-KEY" = "h23CYbjJPka6zTNPG4Yc5AGN946tCy4p"
-          "Authorization" = "Basic YXBpLXByZW1pdW06ZmFzZGZkc2F0QUFBYXdlcmZkMzQxMmUhISE="
+          "X-API-KEY" = "uGCNXKbUhrB3Asq1gFNQ7cePsBsktKFP"
+          "Authorization" = "Basic YXBpOmZhc2RmZHNhdEFBQWF3ZXJmZDM0MTJlISEh"
           "Content-Type" = "application/json"
           "x-token" = $token
           "x-row-limit" = "1000000"
           "x-condition" = "[{ ""fieldName"": ""commentcontent"", ""value"": ""The Service state recovered. The ticket can now be closed"", ""operator"": ""c"", ""group"": true },{ ""fieldName"": ""related_to"", ""value"": ""$global:r"", ""operator"": ""eid"", ""group"": true }]"
         }
 
-        $checknotification = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebservicePremium/ModComments/RecordsList" -Method 'GET' -Headers $headersYeti5
+        $checknotification = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebserviceStandard/ModComments/RecordsList" -Method 'GET' -Headers $headersYeti5
         $checknotificationid = $checknotification.result.records
         $headersOnly5 = ($checknotificationid | Get-Member -MemberType NoteProperty).Name | Select-Object -Last 1
         $getnotificationdate = $checknotification | Select-Object -ExpandProperty result | Select-Object -ExpandProperty records | Select-Object -ExpandProperty $headersOnly5 | Select-Object -ExpandProperty modifiedtime -ErrorAction Ignore
@@ -1174,7 +1174,7 @@ function UpdateTicketIfProblemResolvedItself {
 `n    `"commentcontent`": `"The Service state recovered. The ticket can now be closed.`"
 `n}"
 
-          $response62 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebservicePremium/ModComments/Record" -Method 'POST' -Headers $headersYeti5 -Body $body62
+          $response62 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebserviceStandard/ModComments/Record" -Method 'POST' -Headers $headersYeti5 -Body $body62
 
           # --- Change YetiForce ticket status to System Note Added ---
 
@@ -1182,7 +1182,7 @@ function UpdateTicketIfProblemResolvedItself {
 `n    `"ticketstatus`": `"System Note Added`"
 `n}"
 
-          $updatestatus62 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebservicePremium/HelpDesk/Record/$global:r" -Method 'PUT' -Headers $headersYeti5 -Body $statusbody54
+          $updatestatus62 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebserviceStandard/HelpDesk/Record/$global:r" -Method 'PUT' -Headers $headersYeti5 -Body $statusbody54
 
         }
 
@@ -1210,7 +1210,7 @@ function UpdateTicketIfProblemResolvedItself {
 `n    `"commentcontent`": `"The Service state recovered. The ticket can now be closed.`"
 `n}"
 
-            $response62 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebservicePremium/ModComments/Record" -Method 'POST' -Headers $headersYeti5 -Body $body62
+            $response62 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebserviceStandard/ModComments/Record" -Method 'POST' -Headers $headersYeti5 -Body $body62
 
             # --- Change YetiForce ticket status to System Note Added ---
 
@@ -1218,7 +1218,7 @@ function UpdateTicketIfProblemResolvedItself {
 `n    `"ticketstatus`": `"System Note Added`"
 `n}"
 
-            $updatestatus62 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebservicePremium/HelpDesk/Record/$global:r" -Method 'PUT' -Headers $headersYeti5 -Body $statusbody54
+            $updatestatus62 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebserviceStandard/HelpDesk/Record/$global:r" -Method 'PUT' -Headers $headersYeti5 -Body $statusbody54
           }
         }
       }
