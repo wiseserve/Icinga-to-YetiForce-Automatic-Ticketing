@@ -536,7 +536,7 @@ function RunServices {
 
     # --- Escape the "\" character from the Service description output ---
 
-    $global:outputservice = $outputservice1 -replace '\\','\\\\'
+    $global:outputservice = $outputservice1
 
     # --- Get YetiForce Client ID from Icinga ---
 
@@ -1261,3 +1261,4 @@ Start-Sleep -Seconds 5
 # --- Call UpdateTicketIfProblemResolvedItself Function ---
 
 UpdateTicketIfProblemResolvedItself
+
