@@ -13,6 +13,10 @@
 
 $global:service_exceptions = ""
 
+# --- Host Exceptions ---
+
+$global:host_exceptions = ""
+
 # --- Defined Expiry time for acknowledgements 24h ---
 
 $global:expirytime = (Get-Date (Get-Date).addDays(1) -UFormat %s)
@@ -160,6 +164,12 @@ function GetServiceProblemsCritical {
 function RunHosts {
 
   foreach ($global:h in $global:hosts) {
+  
+    # --- Check for exclusions ---
+    
+    if ($host_exceptions -like "*$h*") {
+      continue
+    }
 
     $headers = @{
       Authorization = $basicAuthValue
@@ -1261,4 +1271,5 @@ Start-Sleep -Seconds 5
 # --- Call UpdateTicketIfProblemResolvedItself Function ---
 
 UpdateTicketIfProblemResolvedItself
+
 
