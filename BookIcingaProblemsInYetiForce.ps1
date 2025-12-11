@@ -164,8 +164,8 @@ function GetServiceProblemsCritical {
 function RunHosts {
 
   foreach ($global:h in $global:hosts) {
-  
-    # --- Check for exclusions ---
+	  
+	# --- Check for exclusions ---
     
     if ($host_exceptions -like "*$h*") {
       continue
@@ -268,7 +268,7 @@ function RunHosts {
         filter = "host.name==hostv"
         filter_vars = @{ hostv = "$h" }
         author = "IcingaAdmin"
-        comment = "YetiForce Ticket Booked In: $ticketnumber1"
+        comment = "YetiForce Ticket: [$ticketnumber1](https://force.wiseserve.net/index.php?module=HelpDesk&view=Detail&record=$ticketid1)"
         expiry = "$expirytime"
       }
 
@@ -360,7 +360,7 @@ function RunHosts {
           filter = "host.name==hostv"
           filter_vars = @{ hostv = "$h" }
           author = "IcingaAdmin"
-          comment = "YetiForce Ticket Booked In: $ticketnumber2"
+          comment = "YetiForce Ticket: [$ticketnumber2](https://force.wiseserve.net/index.php?module=HelpDesk&view=Detail&record=$ticketid2)"
           expiry = "$expirytime"
         }
 
@@ -443,7 +443,7 @@ function RunHosts {
             filter = "host.name==hostv"
             filter_vars = @{ hostv = "$h" }
             author = "IcingaAdmin"
-            comment = "YetiForce Ticket Booked In: $ticketnumber3"
+            comment = "YetiForce Ticket: [$ticketnumber3](https://force.wiseserve.net/index.php?module=HelpDesk&view=Detail&record=$ticketid3)"
             expiry = "$expirytime"
           }
 
@@ -470,7 +470,7 @@ function RunHosts {
             filter = "host.name==hostv"
             filter_vars = @{ hostv = "$h" }
             author = "IcingaAdmin"
-            comment = "YetiForce Ticket Booked In: $ticketnumber4"
+            comment = "YetiForce Ticket: [$ticketnumber4](https://force.wiseserve.net/index.php?module=HelpDesk&view=Detail&record=$commenthost)"
             expiry = "$expirytime"
           }
 
@@ -633,7 +633,7 @@ function RunServices {
         filter = "service.__name==servicev"
         filter_vars = @{ servicev = "$s" }
         author = "IcingaAdmin"
-        comment = "YetiForce Ticket Booked In: $ticketnumber5"
+        comment = "YetiForce Ticket: [$ticketnumber5](https://force.wiseserve.net/index.php?module=HelpDesk&view=Detail&record=$ticketid20)"
         expiry = "$expirytime"
       }
 
@@ -729,7 +729,7 @@ function RunServices {
           filter = "service.__name==servicev"
           filter_vars = @{ servicev = "$s" }
           author = "IcingaAdmin"
-          comment = "YetiForce Ticket Booked In: $ticketnumber6"
+          comment = "YetiForce Ticket: [$ticketnumber6](https://force.wiseserve.net/index.php?module=HelpDesk&view=Detail&record=$ticketid21)"
           expiry = "$expirytime"
         }
 
@@ -816,7 +816,7 @@ function RunServices {
             filter = "service.__name==servicev"
             filter_vars = @{ servicev = "$s" }
             author = "IcingaAdmin"
-            comment = "YetiForce Ticket Booked In: $ticketnumber7"
+            comment = "YetiForce Ticket: [$ticketnumber7](https://force.wiseserve.net/index.php?module=HelpDesk&view=Detail&record=$ticketid22)"
             expiry = "$expirytime"
           }
 
@@ -843,7 +843,7 @@ function RunServices {
             filter = "service.__name==servicev"
             filter_vars = @{ servicev = "$s" }
             author = "IcingaAdmin"
-            comment = "YetiForce Ticket Booked In: $ticketnumber8"
+            comment = "YetiForce Ticket: [$ticketnumber8](https://force.wiseserve.net/index.php?module=HelpDesk&view=Detail&record=$commentservice)"
             expiry = "$expirytime"
           }
 
@@ -1271,5 +1271,3 @@ Start-Sleep -Seconds 5
 # --- Call UpdateTicketIfProblemResolvedItself Function ---
 
 UpdateTicketIfProblemResolvedItself
-
-
