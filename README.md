@@ -1,28 +1,31 @@
-# Icinga-to-YettiForce-Automatic-Ticketing
-A PowerShell script that is booking Icinga Host or Service problems in Hard State directly into YetiForce.
-###
-The script is currently running from the **Icinga Monitoring** server. There is a cron job there to run every hour from 08:00 to 17:00 from Monday to Friday.
+# Icinga-to-YetiForce-Automatic-Ticketing
 
-## How does it work
-###
-The script is retrieving Host/Service problems from Icinga. Only the ones that are in a Hard State, which are not Acknowledged or Scheduled with a Downtime.
-###  
-After retrieval, we will process each individual Host/Service and will book a ticket in YetiForce. After the ticket is booked, will add a comment to the Host/Service with the ticketId and will acknowledge the Host/Service too for 24h.
-###
-After 24h, if the Host/Service recovered, it will be ignored. 
-###
-If the Host/Service is acknowledged, it will be ignored.
-###
-If the Host/Service is not acknowledged, it will check if there is any comment. If a comment is present, it will check if it is a number or not. If it is a number will check if the Ticket is still open. If it is still open, it will post a comment to the ticket that the problem is still on the board and will change the status to Customer Note Added. If the ticket is closed, will delete all existing comments, will book a new ticket and will add a new comment in Icinga with the new ticketID.
-###
-If the Host/Service has a comment but is not a ticketId, will delete all the existing comments, will book a ticket and will add a new comment to Icinga with the new ticketId and will acknowledge the host as well.
-###
-All the Host/Service comments do not expire, but when the problem will come back and the previous ticket was closed, the comments will get deleted, and the new comment with the new ticketId will be added.
-###
-If you want to exclude a service, you can edit the script and add the service name in the format of: Hostname!Servicename. It can accept spaces too. In the script, you will see that there are already two exclusion entries. You can use that as an example.
-###
-The script will check if YetiForce_client_id is defined in the Icinga Host. If it is defined, it will book the ticket under the client. If it is not defined, it will book the ticket under Wiseserve.
-###
-If a ticket was booked in and the problem resolved itself, and the ticket was not yet assigned/accepted, the ticket will get closed(completed).
-###
-If a ticket or more were merged, the script will check if the Parent ticket was closed and, if was not closed, will add a note about the problem from the Child ticket. If the Parent ticket was closed, it will book new tickets.
+A PowerShell script that books Icinga Host or Service problems in a Hard State directly into YetiForce.
+
+The script currently runs from the **Icinga Monitoring** server. A cron job runs it every hour from 08:00 to 17:00, Monday to Friday.
+
+The script is designed to run on **PowerShell 7**.
+
+## How It Works
+
+The script retrieves Host and Service problems from Icinga. Only problems in a Hard State that are not acknowledged and not scheduled with downtime are processed.
+
+After retrieval, each Host or Service is processed individually and a ticket is created in YetiForce. Once the ticket is created, a comment containing the `ticketId` is added to the Host or Service in Icinga, and the Host or Service is acknowledged for 24 hours.
+
+After 24 hours, if the Host or Service has recovered, it is ignored.
+
+If the Host or Service is acknowledged, it is ignored.
+
+If the Host or Service is not acknowledged, the script checks whether a comment exists. If a comment is present, it checks whether the comment is a number. If it is a number, it checks whether the related ticket is still open. If the ticket is still open, a comment is posted to the ticket stating that the problem is still on the board, and the ticket status is changed to `Customer Note Added`. If the ticket is closed, all existing comments are deleted, a new ticket is created, and a new comment containing the new `ticketId` is added in Icinga.
+
+If the Host or Service has a comment that is not a `ticketId`, all existing comments are deleted, a new ticket is created, a new comment containing the new `ticketId` is added in Icinga, and the Host or Service is acknowledged as well.
+
+Host and Service comments do not expire. However, if the problem returns and the previous ticket was already closed, the old comments are deleted and a new comment with the new `ticketId` is added.
+
+If a service needs to be excluded, the script can be edited to add the service name in the format `Hostname!Servicename`. Spaces are supported. The script already contains two exclusion entries that can be used as examples.
+
+The script checks whether `yetiforce_client_id` is defined on the Icinga Host. If it is defined, the ticket is created under that client. If it is not defined, the ticket is created under **Wiseserve**.
+
+If a ticket was created and the problem resolved itself before the ticket was assigned or accepted, the ticket is automatically closed (`Completed`).
+
+If one or more tickets were merged, the script checks whether the parent ticket was closed. If the parent ticket is still open, a note about the problem from the child ticket is added to the parent ticket. If the parent ticket was closed, new tickets are created.
