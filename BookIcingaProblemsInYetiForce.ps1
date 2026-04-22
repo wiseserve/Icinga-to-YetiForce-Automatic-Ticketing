@@ -1,3 +1,5 @@
+### Adapted for PowerShell 7
+
 ### Ticket Queue Legend (ID)
 ## "T10": "Monitoring"
 
@@ -65,18 +67,11 @@ $pair = "$($APIUser):$($APIPass)"
 $encodedCreds = [System.Convert]::ToBase64String([System.Text.Encoding]::ASCII.GetBytes($pair))
 $basicAuthValue = "Basic $encodedCreds"
 
-Add-Type @"
-    using System.Net;
-    using System.Security.Cryptography.X509Certificates;
-    public class TrustAllCertsPolicy : ICertificatePolicy {
-        public bool CheckValidationResult(
-            ServicePoint srvPoint, X509Certificate certificate,
-            WebRequest request, int certificateProblem) {
-            return true;
-        }
-    }
-"@ -ea SilentlyContinue -wa SilentlyContinue
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+
+if ($PSVersionTable.PSVersion.Major -ge 6) {
+  $PSDefaultParameterValues['Invoke-RestMethod:SkipCertificateCheck'] = $true
+}
 
 # --- Retrieve Host problems from icinga. Hard state only ---
 
@@ -92,9 +87,6 @@ function GetHostProblems {
 `n    `"filter_vars`": {`"hoststate`": 1, `"hostacknowledgement`": 0, `"hostdowntime`": 0},
 `n    `"pretty`": true
 `n}"
-
-  [System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
-
 
   $response = Invoke-RestMethod "https://monitoring.wiseserve.net:5665/v1/objects/hosts" -Method 'POST' -Headers $headers -Body $body
 
@@ -120,9 +112,6 @@ function GetServiceProblemsWarning {
 `n    `"pretty`": true
 `n}"
 
-  [System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
-
-
   $response = Invoke-RestMethod "https://monitoring.wiseserve.net:5665/v1/objects/services" -Method 'POST' -Headers $headers -Body $body
 
   $global:services = $response | Select-Object -ExpandProperty results | Select-Object -ExpandProperty attrs | Select-Object -ExpandProperty __name
@@ -147,9 +136,6 @@ function GetServiceProblemsCritical {
 `n    `"pretty`": true
 `n}"
 
-  [System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
-
-
   $response = Invoke-RestMethod "https://monitoring.wiseserve.net:5665/v1/objects/services" -Method 'POST' -Headers $headers -Body $body
 
   $global:services = $response | Select-Object -ExpandProperty results | Select-Object -ExpandProperty attrs | Select-Object -ExpandProperty __name
@@ -157,6 +143,38 @@ function GetServiceProblemsCritical {
   # --- Call RunServices Function ---
 
   RunServices
+}
+
+function TestIfRecentBoardCommentExists {
+  param(
+    [Parameter(Mandatory = $true)]
+    [string]$TicketId
+  )
+
+  $headersYetiCommentCheck = @{
+    "X-API-KEY" = "uGCNXKbUhrB3Asq1gFNQ7cePsBsktKFP"
+    "Authorization" = "Basic YXBpOmZhc2RmZHNhdEFBQWF3ZXJmZDM0MTJlISEh"
+    "Content-Type" = "application/json"
+    "x-token" = $token
+    "x-row-limit" = "1000000"
+    "x-condition" = "[{ ""fieldName"": ""commentcontent"", ""value"": ""The problem is still on the board"", ""operator"": ""c"", ""group"": true },{ ""fieldName"": ""related_to"", ""value"": ""$TicketId"", ""operator"": ""eid"", ""group"": true }]"
+  }
+
+  $checknotification = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebserviceStandard/ModComments/RecordsList" -Method 'GET' -Headers $headersYetiCommentCheck
+  $checknotificationid = $checknotification.result.records
+  $headersOnly = ($checknotificationid | Get-Member -MemberType NoteProperty).Name | Select-Object -Last 1
+  $getnotificationdate = $checknotification | Select-Object -ExpandProperty result | Select-Object -ExpandProperty records | Select-Object -ExpandProperty $headersOnly | Select-Object -ExpandProperty modifiedtime -ErrorAction Ignore
+
+  if ($getnotificationdate -eq $null) {
+    return $false
+  }
+
+  $culture = [System.Globalization.CultureInfo]::GetCultureInfo("en-GB")
+  $parsedDate = [datetime]::ParseExact($getnotificationdate.Substring(0,16),'dd/MM/yyyy HH:mm',$culture)
+  $notificationdate = $parsedDate.ToString('dd MMMM yyyy HH:mm:ss',$culture)
+  $timespan = New-TimeSpan -Hours 24
+
+  return (((Get-Date) - [datetime]$notificationdate) -lt $timespan)
 }
 
 # --- Retrieve Host comments and book a new ticket or update an existing ticket ---
@@ -254,7 +272,6 @@ function RunHosts {
       }
 
       $json1 = $body5 | ConvertTo-Json
-      [System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
       $response5 = Invoke-RestMethod -Uri "https://monitoring.wiseserve.net:5665/v1/actions/add-comment" -Method 'POST' -ContentType 'application/json' -Headers $HeadersPost -Body $json1
 
       # --- Acknowledge Icinga Host with the YetiForce Ticket Number ---
@@ -273,7 +290,6 @@ function RunHosts {
       }
 
       $json2 = $body6 | ConvertTo-Json
-      [System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
       $response6 = Invoke-RestMethod -Uri "https://monitoring.wiseserve.net:5665/v1/actions/acknowledge-problem" -Method 'POST' -ContentType 'application/json' -Headers $HeadersPost -Body $json2
     }
 
@@ -285,10 +301,13 @@ function RunHosts {
 
       if ($checkifnumber -eq $true) {
 
-        $response8 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebserviceStandard/HelpDesk/Record/$commenthost" -Method 'GET' -Headers $headersYeti
-        $response8 | ConvertTo-Json
-
-        $verifyticketid = $response8 | Select-Object -ExpandProperty result | Select-Object -ExpandProperty id
+        try {
+          $response8 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebserviceStandard/HelpDesk/Record/$commenthost" -Method 'GET' -Headers $headersYeti -ErrorAction Stop
+          $verifyticketid = $response8 | Select-Object -ExpandProperty result | Select-Object -ExpandProperty id
+        }
+        catch {
+          $verifyticketid = $null
+        }
       }
 
       # --- Verify if the ticket from Icinga comment exists as a ticket in YetiForce ---
@@ -346,7 +365,6 @@ function RunHosts {
         }
 
         $json1 = $body5 | ConvertTo-Json
-        [System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
         $response5 = Invoke-RestMethod -Uri "https://monitoring.wiseserve.net:5665/v1/actions/add-comment" -Method 'POST' -ContentType 'application/json' -Headers $HeadersPost -Body $json1
 
         # --- Acknowledge Icinga Host with the YetiForce Ticket Number ---
@@ -365,7 +383,6 @@ function RunHosts {
         }
 
         $json2 = $body6 | ConvertTo-Json
-        [System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
         $response6 = Invoke-RestMethod -Uri "https://monitoring.wiseserve.net:5665/v1/actions/acknowledge-problem" -Method 'POST' -ContentType 'application/json' -Headers $HeadersPost -Body $json2
       }
 
@@ -429,7 +446,6 @@ function RunHosts {
           }
 
           $json4 = $body13 | ConvertTo-Json
-          [System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
           $response14 = Invoke-RestMethod -Uri "https://monitoring.wiseserve.net:5665/v1/actions/add-comment" -Method 'POST' -ContentType 'application/json' -Headers $HeadersPost -Body $json4
 
           # --- Acknowledge Icinga Host with the YetiForce Ticket Number ---
@@ -448,7 +464,6 @@ function RunHosts {
           }
 
           $json5 = $body15 | ConvertTo-Json
-          [System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
           $response15 = Invoke-RestMethod -Uri "https://monitoring.wiseserve.net:5665/v1/actions/acknowledge-problem" -Method 'POST' -ContentType 'application/json' -Headers $HeadersPost -Body $json5
         }
 
@@ -475,25 +490,32 @@ function RunHosts {
           }
 
           $json2 = $body9 | ConvertTo-Json
-          [System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
           $response9 = Invoke-RestMethod -Uri "https://monitoring.wiseserve.net:5665/v1/actions/acknowledge-problem" -Method 'POST' -ContentType 'application/json' -Headers $HeadersPost -Body $json2
 
-          # --- Post comment in YetiForce Ticket ---
+          if (TestIfRecentBoardCommentExists -TicketId $commenthost) {
 
-          $body10 = "{
+            Write-Host "Host - Ticket update notification will be skipped. It is less than 24h since the last board comment - Ticket ID: $commenthost"
+          }
+
+          else {
+
+            # --- Post comment in YetiForce Ticket ---
+
+            $body10 = "{
 `n    `"related_to`": $commenthost,
 `n    `"commentcontent`": `"The problem is still on the board`"
 `n}"
 
-          $response10 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebserviceStandard/ModComments/Record" -Method 'POST' -Headers $headersYeti -Body $body10
+            $response10 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebserviceStandard/ModComments/Record" -Method 'POST' -Headers $headersYeti -Body $body10
 
-          # --- Change YetiForce ticket status to System Note Added ---
+            # --- Change YetiForce ticket status to System Note Added ---
 
-          $statusbody1 = "{
+            $statusbody1 = "{
 `n    `"ticketstatus`": `"System Note Added`"
 `n}"
 
-          $updatestatus1 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebserviceStandard/HelpDesk/Record/$commenthost" -Method 'PUT' -Headers $headersYeti -Body $statusbody1
+            $updatestatus1 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebserviceStandard/HelpDesk/Record/$commenthost" -Method 'PUT' -Headers $headersYeti -Body $statusbody1
+          }
         }
       }
     }
@@ -521,9 +543,6 @@ function RunServices {
 `n    `"filter`": `"service.__name==servicenames`",
 `n    `"filter_vars`": {`"servicenames`": `"$s`"}
 `n}"
-
-    [System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
-
 
     $response4 = Invoke-RestMethod "https://monitoring.wiseserve.net:5665/v1/objects/comments" -Method 'POST' -Headers $headers -Body $body4
     $global:output2 = Invoke-RestMethod "https://monitoring.wiseserve.net:5665/v1/objects/services" -Method 'POST' -Headers $headers -Body $body4
@@ -619,7 +638,6 @@ function RunServices {
       }
 
       $json10 = $body21 | ConvertTo-Json
-      [System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
       $response21 = Invoke-RestMethod -Uri "https://monitoring.wiseserve.net:5665/v1/actions/add-comment" -Method 'POST' -ContentType 'application/json' -Headers $HeadersPost -Body $json10
 
       # --- Acknowledge Icinga Service with the YetiForce Ticket Number ---
@@ -638,7 +656,6 @@ function RunServices {
       }
 
       $json11 = $body22 | ConvertTo-Json
-      [System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
       $response22 = Invoke-RestMethod -Uri "https://monitoring.wiseserve.net:5665/v1/actions/acknowledge-problem" -Method 'POST' -ContentType 'application/json' -Headers $HeadersPost -Body $json11
     }
 
@@ -650,10 +667,13 @@ function RunServices {
 
       if ($checkifnumber2 -eq $true) {
 
-        $response23 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebserviceStandard/HelpDesk/Record/$commentservice" -Method 'GET' -Headers $headersYeti
-        $response23 | ConvertTo-Json
-
-        $verifyticketid2 = $response23 | Select-Object -ExpandProperty result | Select-Object -ExpandProperty id
+        try {
+          $response23 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebserviceStandard/HelpDesk/Record/$commentservice" -Method 'GET' -Headers $headersYeti -ErrorAction Stop
+          $verifyticketid2 = $response23 | Select-Object -ExpandProperty result | Select-Object -ExpandProperty id
+        }
+        catch {
+          $verifyticketid2 = $null
+        }
       }
 
       # --- Verify if the ticket from Icinga comment exists as a ticket in YetiForce ---
@@ -715,7 +735,6 @@ function RunServices {
         }
 
         $json12 = $body26 | ConvertTo-Json
-        [System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
         $response26 = Invoke-RestMethod -Uri "https://monitoring.wiseserve.net:5665/v1/actions/add-comment" -Method 'POST' -ContentType 'application/json' -Headers $HeadersPost -Body $json12
 
         # --- Acknowledge Icinga Service with the YetiForce Ticket Number ---
@@ -734,7 +753,6 @@ function RunServices {
         }
 
         $json13 = $body27 | ConvertTo-Json
-        [System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
         $response27 = Invoke-RestMethod -Uri "https://monitoring.wiseserve.net:5665/v1/actions/acknowledge-problem" -Method 'POST' -ContentType 'application/json' -Headers $HeadersPost -Body $json13
       }
 
@@ -802,7 +820,6 @@ function RunServices {
           }
 
           $json15 = $body31 | ConvertTo-Json
-          [System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
           $response31 = Invoke-RestMethod -Uri "https://monitoring.wiseserve.net:5665/v1/actions/add-comment" -Method 'POST' -ContentType 'application/json' -Headers $HeadersPost -Body $json15
 
           # --- Acknowledge Icinga Service with the YetiForce Ticket Number ---
@@ -821,7 +838,6 @@ function RunServices {
           }
 
           $json16 = $body32 | ConvertTo-Json
-          [System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
           $response32 = Invoke-RestMethod -Uri "https://monitoring.wiseserve.net:5665/v1/actions/acknowledge-problem" -Method 'POST' -ContentType 'application/json' -Headers $HeadersPost -Body $json16
         }
 
@@ -848,25 +864,32 @@ function RunServices {
           }
 
           $json17 = $body33 | ConvertTo-Json
-          [System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
           $response33 = Invoke-RestMethod -Uri "https://monitoring.wiseserve.net:5665/v1/actions/acknowledge-problem" -Method 'POST' -ContentType 'application/json' -Headers $HeadersPost -Body $json17
 
-          # --- Post comment in YetiForce Ticket ---
+          if (TestIfRecentBoardCommentExists -TicketId $commentservice) {
 
-          $body34 = "{
+            Write-Host "Service - Ticket update notification will be skipped. It is less than 24h since the last board comment - Ticket ID: $commentservice"
+          }
+
+          else {
+
+            # --- Post comment in YetiForce Ticket ---
+
+            $body34 = "{
 `n    `"related_to`": $commentservice,
 `n    `"commentcontent`": `"The problem is still on the board`"
 `n}"
 
-          $response34 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebserviceStandard/ModComments/Record" -Method 'POST' -Headers $headersYeti -Body $body34
+            $response34 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebserviceStandard/ModComments/Record" -Method 'POST' -Headers $headersYeti -Body $body34
 
-          # --- Change YetiForce ticket status to System Note Added ---
+            # --- Change YetiForce ticket status to System Note Added ---
 
-          $statusbody2 = "{
+            $statusbody2 = "{
 `n    `"ticketstatus`": `"System Note Added`"
 `n}"
 
-          $updatestatus2 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebserviceStandard/HelpDesk/Record/$commentservice" -Method 'PUT' -Headers $headersYeti -Body $statusbody2
+            $updatestatus2 = Invoke-RestMethod "https://force.wiseserve.net/webservice/WebserviceStandard/HelpDesk/Record/$commentservice" -Method 'PUT' -Headers $headersYeti -Body $statusbody2
+          }
         }
       }
     }
@@ -924,9 +947,6 @@ function CheckIfProblemResolvedItself {
 `n    `"pretty`": true
 `n}"
 
-      [System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
-
-
       $response4 = Invoke-RestMethod "https://monitoring.wiseserve.net:5665/v1/objects/hosts" -Method 'POST' -Headers $headers -Body $body
 
       $response2 = $response4 | Select-Object -ExpandProperty results | Select-Object -ExpandProperty name -ErrorAction Ignore
@@ -966,9 +986,6 @@ function CheckIfProblemResolvedItself {
 `n    `"filter_vars`": {`"servicestate`": 0, `"servicename`": `"$NotAssignedTicket`"},
 `n    `"pretty`": true
 `n}"
-
-      [System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
-
 
       $response5 = Invoke-RestMethod "https://monitoring.wiseserve.net:5665/v1/objects/services" -Method 'POST' -Headers $headers -Body $body
 
@@ -1051,9 +1068,6 @@ function UpdateTicketIfProblemResolvedItself {
 `n    `"filter_vars`": {`"hoststate`": 0, `"hostname`": `"$StatusRecovered`"},
 `n    `"pretty`": true
 `n}"
-
-      [System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
-
 
       $response54 = Invoke-RestMethod 'https://monitoring.wiseserve.net:5665/v1/objects/hosts' -Method 'POST' -Headers $headers -Body $body59
 
@@ -1146,9 +1160,6 @@ function UpdateTicketIfProblemResolvedItself {
 `n    `"filter_vars`": {`"servicestate`": 0, `"servicename`": `"$StatusRecovered`"},
 `n    `"pretty`": true
 `n}"
-
-      [System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
-
 
       $response55 = Invoke-RestMethod 'https://monitoring.wiseserve.net:5665/v1/objects/services' -Method 'POST' -Headers $headers -Body $body61
 
